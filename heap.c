@@ -9,6 +9,9 @@
 
 //nao tem tratamento de erro pois nao sei se vamos precisar implementar isso
 
+//precisa implementar quando chegarmos no topo da heap abrir mais espaço
+//acho que isso sera mais facil usando a brk
+
 //representa syscall 12 que retorna tamanho da heap
 //em assembly isso nao vai precisar ser feito pois usamos a syscall
 int brk(int* heap){
@@ -48,7 +51,6 @@ int junta_blocos(int* heap){
         }
 
         i=i+2+heap[i+1];
-        printf("o valor de i %d \n",i);
     }
 }
 
@@ -87,7 +89,6 @@ void alocaMem(int tam, int heap[]){
     int tam_heap = brk(heap);
     int inicio = politica_de_escolha(heap,tam);
     int tam_livre = heap[inicio+1];
-    printf("tam livre %d \n",tam_livre);
 
     if(tam+2<=tam_livre)
         heap[tam+inicio+2] = 1;
@@ -98,7 +99,8 @@ void alocaMem(int tam, int heap[]){
 
 }
 
-void liberaMem(int bloco, int heap[]){
+//pq tem que ser int?
+int liberaMem(int bloco, int heap[]){
     heap[bloco-2] = 1;
     junta_blocos(heap);
 }
