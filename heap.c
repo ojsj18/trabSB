@@ -84,6 +84,8 @@ void iniciaAlocador(int tam, int* heap){
     heap[i]=3;
 }
 
+//se espaço escolhido for maior do que eu quero eu particiona a area em um local ocupado(oq vou usar)
+//e outro livre(oq sobrou)
 void alocaMem(int tam, int heap[]){
     
     int tam_heap = brk(heap);
@@ -100,6 +102,7 @@ void alocaMem(int tam, int heap[]){
 }
 
 //pq tem que ser int?
+//recebo o inicio do bloco livre e altero o estado
 int liberaMem(int bloco, int heap[]){
     heap[bloco-2] = 1;
     junta_blocos(heap);
