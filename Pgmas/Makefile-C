@@ -1,0 +1,30 @@
+CC = gcc
+CFLAGS = 
+
+FONTES_C = $(wildcard *.c)
+EXECS_C  = $(FONTES_C:%.c=%)
+
+.PHONY: all
+
+all: execs_c cap6 cap7 cap8
+
+execs_c: $(EXECS_C)
+
+cap6:
+	make -C Cap6/Dynamic
+	make -C Cap6/Shared
+	make -C Cap6/Static
+
+cap7:
+	make -C Cap7
+
+cap8:
+	make -C Cap8
+
+clean:
+	rm -f $(EXECS_C)
+	make -C Cap6/Dynamic clean
+	make -C Cap6/Shared clean
+	make -C Cap6/Static clean
+	make -C Cap7 clean
+	make -C Cap8 clean
