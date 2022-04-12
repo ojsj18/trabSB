@@ -26,7 +26,7 @@ iniciaAlocador:
 
   #os headers ficaram em -8 e -16 entao tem que andar 16 depois do inicio
    movq %rax,ini_heap    #ini-heap := endereço da heap
-   addq header, %rax     # rax:= header
+   addq header, %rax     # rax:= header |status tam|----------|
    movq %rax, inicio     # inicio := ini_heap+header 
    addq bloco,%rax       # rax:= ini_heap+header+novo_bloco
    movq %rax, tam_heap  
@@ -38,7 +38,8 @@ iniciaAlocador:
    #coloca o header
    movq inicio,%rax
    movq $0,-16(%rax)  #STATUS
-   movq bloco,-8(%rax) #TAMANHO
+   movq bloco,%rdx
+   movq %rdx,-8(%rax) #TAMANHO
 
    pop %rbp
    ret
@@ -74,16 +75,18 @@ imprime_mapa:
    pushq %rbp
    movq %rsp,%rbp
 
-   movq inicio,%rax      #i = inicio
+   movq inicio,%rbx      #i = inicio
    while_imprime:
-   cmpq %rax,tam_heap #if i<tam_heap
-   jl fim_while_imprime
+   cmpq tam_heap,%rbx    #if i<tam_heap
+   jge fim_while_imprime
    movq $str3,%rdi
-   movq -16(%rax),%rsi
-   movq -8(%rax),%rdx
+   movq -16(%rbx),%rsi
+   movq -8(%rbx),%rdx
+   movq %rdx,%r12
    call printf
 
-   addq %rdx,%rax #i=i+tam_bloco
+   addq %r12,%rbx        #i=i+tam_bloco
+   addq header,%rbx
    jmp  while_imprime
 
    fim_while_imprime:
@@ -94,21 +97,21 @@ politica_de_escolha:
    pushq %rbp
    movq %rsp,%rbp
 
-   movq 16(%rbp),%rax #pega tamanho qu quer alocar
+   movq %rdi,%rax #pega tamanho que quer alocar
    movq inicio,%rdx       #i =inicio
    while_percorre:
    cmpq %rdx,tam_heap #if i<tam_heap
    jl fim_while_percorre
-   cmpq $1,8(%rdx)  # ve se ta livre
+   cmpq $0,-16(%rdx)  # ve se ta livre
    jne fim_if_livre
-   cmpq 16(%rdx),%rax   #se tamanho no bloco e disponivel
-   jle fim_if_livre
-   movq %rdx,%rdi
+   cmpq -8(%rdx),%rax   #se tamanho no bloco e disponivel
+   jg fim_if_livre
+   movq %rdx,%rax
    pop %rbp
    ret
 
    fim_if_livre:
-   addq -16(%rbx),%rdx    #calcula proximo bloco
+   addq -8(%rax),%rdx    #calcula proximo bloco
    addq header,%rdx
    jmp while_percorre
 
@@ -124,7 +127,7 @@ politica_de_escolha:
    #coloca o header e devolve o novo bloco
    movq $0,16(%rdx)  #TAMANHO
    movq $0,8(%rdx)   #STATUS
-   movq %rdx,%rdi
+   movq %rdx,%rax
    pop %rbp
    ret
 
@@ -132,9 +135,10 @@ alocaMem:
    pushq %rbp
    movq %rsp,%rbp
 
-   pushq %rdi #empilha primeiro parametro
-   call politica_de_escolha
-   addq $16, %rsp
+   call imprime_infs
+
+   pop %rbp
+   ret
 
 main:
    pushq %rbp    
@@ -147,6 +151,11 @@ main:
    call imprime_infs
    call imprime_mapa
 
+   movq bloco,%rdi
+   push %rdi
+   call politica_de_escolha
+   pushq %rax
+   call alocaMem
    movq $60, %rax
    syscall
    
