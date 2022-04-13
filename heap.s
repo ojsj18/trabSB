@@ -113,8 +113,7 @@ politica_de_escolha:
    #coloca o header e devolve o novo bloco
    movq -8(%rdx), %r12
    subq %rdi, %r12
-   movq %r12, 16(%rdx)
-   #movq $0,16(%rdx)  #TAMANHO
+   movq %r12, 16(%rdx) #TAMANHO
    movq $0,8(%rdx)   #STATUS
    movq %rdx,%rax
    pop %rbp
