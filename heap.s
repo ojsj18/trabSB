@@ -125,8 +125,8 @@ politica_de_escolha:
    syscall
 
    #coloca o header e devolve o novo bloco
-   movq $0,16(%rdx)  #TAMANHO
-   movq $0,8(%rdx)   #STATUS
+   movq $0,-8(%rdx)  #TAMANHO
+   movq $0,-16(%rdx)   #STATUS
    movq %rdx,%rax
    pop %rbp
    ret
@@ -143,7 +143,7 @@ alocaMem:
 
    #calcular divisao dos blocos
    call imprime_mapa
-   
+
    pop %rbp
    ret
 
@@ -161,7 +161,6 @@ main:
    movq bloco,%rdi
    pushq %rdi
    call alocaMem
-
    movq $60, %rax
    syscall
    
