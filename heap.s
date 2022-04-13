@@ -106,6 +106,16 @@ politica_de_escolha:
    jne fim_if_livre
    cmpq -8(%rdx),%rax   #se tamanho no bloco e disponivel
    jg fim_if_livre
+   #movq %rdx,%rax
+   #pop %rbp
+   #ret
+   
+   #coloca o header e devolve o novo bloco
+   movq -8(%rdx), %r12
+   subq %rdi, %r12
+   movq %r12, 16(%rdx)
+   #movq $0,16(%rdx)  #TAMANHO
+   movq $0,8(%rdx)   #STATUS
    movq %rdx,%rax
    pop %rbp
    ret
@@ -124,12 +134,7 @@ politica_de_escolha:
    movq $12,%rax
    syscall
 
-   #coloca o header e devolve o novo bloco
-   movq $0,16(%rdx)  #TAMANHO
-   movq $0,8(%rdx)   #STATUS
-   movq %rdx,%rax
-   pop %rbp
-   ret
+   
 
 alocaMem:
    pushq %rbp
@@ -142,6 +147,7 @@ alocaMem:
    movq %rdi,-8(%rax)
 
    #calcular divisao dos blocos
+   call imprime_infs
    call imprime_mapa
    
    pop %rbp
@@ -158,7 +164,8 @@ main:
    call imprime_infs
    call imprime_mapa
 
-   movq bloco,%rdi
+   # movq bloco,%rdi
+   movq $32,%rdi
    pushq %rdi
    call alocaMem
 
