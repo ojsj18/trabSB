@@ -120,8 +120,9 @@ politica_de_escolha:
 
    #aqui eu abro mais espaço na heap
    fim_while_percorre:
-   movq tam_heap,%r13
    movq %rax,%r14 #salvo o tamanho do bloco
+
+   movq tam_heap,%r13
    addq %rax,%r13 #somo no final da heap o tamanho que eu quero
    addq header,%r13
    movq %r13,%rdi
@@ -130,11 +131,15 @@ politica_de_escolha:
 
    #coloca o header e devolve o novo bloco
    movq tam_heap,%rbx
-   movq %r14,16(%rbx)  #TAMANHO como estou no fim da heap e para frente
-   movq $0,8(%rbx)   #STATUS
    addq header,%rbx
-   movq %rbx,%rax
+
+   movq %r14,-16(%rbx)  #TAMANHO como estou no fim da heap e para frente
+   movq $0,-8(%rbx)   #STATUS
+
+   movq -16(%rbx),%rdx # ta funcionando
    movq %r13,tam_heap #atualizando o tamanho
+
+   movq %rbx,%rax
    pop %rbp
    ret
 
@@ -142,19 +147,22 @@ alocaMem:
    pushq %rbp
    movq %rsp,%rbp
 
+   movq %rdi,%r15
    pushq %rdi
+
    call politica_de_escolha
 
    movq $1,-16(%rax) #muda o status para ocupado
    movq -8(%rax),%r12 #salva o tamanho do bloco para calcular oq sobra
-   movq %rdi,-8(%rax) #substitui o tamanho antigo do bloco para o novo tamanho
+
+   movq %r15,-8(%rax) #substitui o tamanho antigo do bloco para o novo tamanho
 
    #calcular divisao dos blocos
-   subq %rdi,%r12     #calcula a diferença
+   subq %r15,%r12     #calcula a diferença
    cmpq $0,%r12       #se for igual a zero nao precisa dividir o bloco
-   jle fim_calcula_bloco
+   je fim_calcula_bloco
    movq %rax,%r13  #r13 = endereço na heap
-   addq %rdi,%r13  #r13 + tamanho do bloco ocupado
+   addq %r15,%r13  #r13 + tamanho do bloco ocupado
 
    #aqui eu chego no final do bloco livre entao e pra frente que eu coloco
    movq $0,16(%r13) #coloca o 0 de livre no bloco novo
