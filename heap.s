@@ -135,8 +135,15 @@ alocaMem:
    pushq %rbp
    movq %rsp,%rbp
 
-   call imprime_infs
+   pushq %rdi
+   call politica_de_escolha
 
+   movq $1,-16(%rax)
+   movq %rdi,-8(%rax)
+
+   #calcular divisao dos blocos
+   call imprime_mapa
+   
    pop %rbp
    ret
 
@@ -152,10 +159,9 @@ main:
    call imprime_mapa
 
    movq bloco,%rdi
-   push %rdi
-   call politica_de_escolha
-   pushq %rax
+   pushq %rdi
    call alocaMem
+
    movq $60, %rax
    syscall
    
