@@ -4,9 +4,11 @@
    ini_heap:     .quad 0
    header:       .quad 16
    bloco:        .quad 64
+   bloco_teste_div:            .quad 32
+   bloco_teste_aumenta:        .quad 80
    str1:     .string "começou a baixaria\n"
    str2:     .string "valor da heap %p\n"
-   str3:     .string "status %d |tamanho %d\n"
+   str3:     .string "status %d |tamanho %d | endereço %d\n"
    str4:     .string "inicio %d |tamanho %d | ini_heap %d \n"
 .section .text
 .globl main
@@ -83,6 +85,7 @@ imprime_mapa:
    movq -16(%rbx),%rsi
    movq -8(%rbx),%rdx
    movq %rdx,%r12
+   movq %rbx,%rcx
    call printf
 
    addq %r12,%rbx        #i=i+tam_bloco
@@ -98,36 +101,40 @@ politica_de_escolha:
    movq %rsp,%rbp
 
    movq %rdi,%rax #pega tamanho que quer alocar
-   movq inicio,%rdx       #i =inicio
+   movq inicio,%r13       #i =inicio
    while_percorre:
-   cmpq %rdx,tam_heap #if i<tam_heap
+   cmpq %r13,tam_heap #if i<tam_heap
    jl fim_while_percorre
-   cmpq $0,-16(%rdx)  # ve se ta livre
+   cmpq $0,-16(%r13)  # ve se ta livre
    jne fim_if_livre
-   cmpq -8(%rdx),%rax   #se tamanho no bloco e disponivel
+   cmpq -8(%r13),%rax   #se tamanho no bloco e disponivel
    jg fim_if_livre
-   movq %rdx,%rax
+   movq %r13,%rax
    pop %rbp
    ret
 
    fim_if_livre:
-   addq -8(%rax),%rdx    #calcula proximo bloco
-   addq header,%rdx
+   addq -8(%r13),%r13    #calcula proximo bloco
+   addq header,%r13
    jmp while_percorre
 
    #aqui eu abro mais espaço na heap
    fim_while_percorre:
-   movq tam_heap,%rdx
-   addq %rax,%rdx
-   addq header,%rdx
-   movq %rdx,%rdi
+   movq tam_heap,%r13
+   movq %rax,%r14 #salvo o tamanho do bloco
+   addq %rax,%r13 #somo no final da heap o tamanho que eu quero
+   addq header,%r13
+   movq %r13,%rdi
    movq $12,%rax
    syscall
 
    #coloca o header e devolve o novo bloco
-   movq $0,-8(%rdx)  #TAMANHO
-   movq $0,-16(%rdx)   #STATUS
-   movq %rdx,%rax
+   movq tam_heap,%rbx
+   movq %r14,16(%rbx)  #TAMANHO como estou no fim da heap e para frente
+   movq $0,8(%rbx)   #STATUS
+   addq header,%rbx
+   movq %rbx,%rax
+   movq %r13,tam_heap #atualizando o tamanho
    pop %rbp
    ret
 
@@ -138,10 +145,25 @@ alocaMem:
    pushq %rdi
    call politica_de_escolha
 
-   movq $1,-16(%rax)
-   movq %rdi,-8(%rax)
+   movq $1,-16(%rax) #muda o status para ocupado
+   movq -8(%rax),%r12 #salva o tamanho do bloco para calcular oq sobra
+   movq %rdi,-8(%rax) #substitui o tamanho antigo do bloco para o novo tamanho
 
    #calcular divisao dos blocos
+   subq %rdi,%r12     #calcula a diferença
+   cmpq $0,%r12       #se for igual a zero nao precisa dividir o bloco
+   jle fim_calcula_bloco
+   movq %rax,%r13  #r13 = endereço na heap
+   addq %rdi,%r13  #r13 + tamanho do bloco ocupado
+
+   #aqui eu chego no final do bloco livre entao e pra frente que eu coloco
+   movq $0,16(%r13) #coloca o 0 de livre no bloco novo
+
+   #preciso retirar o tamanho do header
+   subq header,%r12
+   movq %r12,16(%r13)
+
+   fim_calcula_bloco:
    call imprime_mapa
 
    pop %rbp
@@ -156,11 +178,11 @@ main:
    
    call iniciaAlocador
    call imprime_infs
-   call imprime_mapa
 
-   movq bloco,%rdi
+   movq bloco_teste_aumenta,%rdi
    pushq %rdi
    call alocaMem
+
    movq $60, %rax
    syscall
    
