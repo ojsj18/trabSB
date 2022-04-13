@@ -165,11 +165,12 @@ alocaMem:
    addq %r15,%r13  #r13 + tamanho do bloco ocupado
 
    #aqui eu chego no final do bloco livre entao e pra frente que eu coloco
-   movq $0,16(%r13) #coloca o 0 de livre no bloco novo
+   addq header,%r13
+   movq $0,-16(%r13) #coloca o 0 de livre no bloco novo
 
    #preciso retirar o tamanho do header
    subq header,%r12
-   movq %r12,16(%r13)
+   movq %r12,-8(%r13)
 
    fim_calcula_bloco:
    call imprime_mapa
@@ -187,7 +188,7 @@ main:
    call iniciaAlocador
    call imprime_infs
 
-   movq bloco_teste_aumenta,%rdi
+   movq bloco_teste_div,%rdi
    pushq %rdi
    call alocaMem
 
