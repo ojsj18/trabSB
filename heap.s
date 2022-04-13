@@ -148,7 +148,6 @@ alocaMem:
    movq %rsp,%rbp
 
    movq %rdi,%r15
-   pushq %rdi
 
    call politica_de_escolha
 
@@ -180,7 +179,7 @@ alocaMem:
 
 main:
    pushq %rbp    
-   movq %rsp, %rbp 
+   movq %rsp, %rbp
 
    movq $str1, %rdi                   
    call printf
@@ -189,7 +188,6 @@ main:
    call imprime_infs
 
    movq bloco_teste_div,%rdi
-   pushq %rdi
    call alocaMem
 
    movq $60, %rax
