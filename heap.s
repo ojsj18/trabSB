@@ -57,6 +57,8 @@ finalizaAlocador:
    movq ini_heap,%rdi
    syscall
 
+   movq ini_heap,%rdx
+   movq %rdx,tam_heap
    pop %rbp
    ret
 
@@ -189,6 +191,10 @@ main:
 
    movq bloco_teste_div,%rdi
    call alocaMem
+
+   call finalizaAlocador
+
+   call imprime_infs
 
    movq $60, %rax
    syscall
