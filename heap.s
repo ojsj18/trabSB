@@ -6,6 +6,8 @@
    bloco:        .quad 64
    bloco_teste_div:            .quad 32
    bloco_teste_aumenta:        .quad 80
+   bloco_1:                    .quad 100
+   bloco_2:                    .quad 200
    str1:     .string "começou a baixaria\n"
    str2:     .string "valor da heap %p\n"
    str3:     .string "status %d |tamanho %d | endereço %d\n"
@@ -45,6 +47,36 @@ iniciaAlocador:
 
    pop %rbp
    ret
+
+juntaBlocos:
+    pushq %rbp
+    movq %rsp,%rbp
+
+    #movq %rdi,%rax #pega tamanho que quer alocar
+    movq inicio,%r13       #i =inicio
+    while_percorre_junta_blocos:
+    cmpq %r13,tam_heap #if i<tam_heap
+    jl fim_while_percorre_junta_blocos
+
+    cmpq $0,-16(%r13)  # ve se ta livre
+    jne fim_if_livre_junta_blocos
+    movq -8(%r13), %r14
+    addq %r13, %r14
+
+    cmpq $0, -16(%r14)
+    jne fim_if_livre_junta_blocos
+    movq -8(%r14), %r15
+    addq header, %r15
+    addq %r15,-8(%r13)
+
+    fim_if_livre_junta_blocos:
+    addq -8(%r13),%r13    #calcula proximo bloco
+    addq header,%r13
+    jmp while_percorre_junta_blocos
+
+    fim_while_percorre_junta_blocos:
+    pop %rbp
+    ret
 
 #passo o novo tamanho da pilha como sendo o valor inicial
 finalizaAlocador:
@@ -191,6 +223,17 @@ main:
 
    movq bloco_teste_div,%rdi
    call alocaMem
+
+   movq bloco_teste_aumenta,%rdi
+   call alocaMem
+
+   movq bloco_1,%rdi
+   call alocaMem
+
+   movq bloco_2,%rdi
+   call alocaMem
+
+   call juntaBlocos
 
    call finalizaAlocador
 
