@@ -58,7 +58,6 @@ juntaBlocos:
     jl fim_while_percorre_junta_blocos
 
     cmpq $0,-16(%r13)  # ve se ta livre
-    movq -16(%r13), %r15
     jne fim_if_livre_junta_blocos
     movq -8(%r13), %r14
     addq %r13, %r14
