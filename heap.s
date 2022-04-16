@@ -52,16 +52,17 @@ juntaBlocos:
     pushq %rbp
     movq %rsp,%rbp
 
-    #movq %rdi,%rax #pega tamanho que quer alocar
     movq inicio,%r13       #i =inicio
     while_percorre_junta_blocos:
     cmpq %r13,tam_heap #if i<tam_heap
     jl fim_while_percorre_junta_blocos
 
     cmpq $0,-16(%r13)  # ve se ta livre
+    movq -16(%r13), %r15
     jne fim_if_livre_junta_blocos
     movq -8(%r13), %r14
     addq %r13, %r14
+    addq header, %r14
 
     cmpq $0, -16(%r14)
     jne fim_if_livre_junta_blocos
@@ -91,6 +92,15 @@ finalizaAlocador:
 
    movq ini_heap,%rdx
    movq %rdx,tam_heap
+   pop %rbp
+   ret
+
+liberaAlocador:
+   pushq %rbp
+   movq %rsp,%rbp
+    
+   movq $0, -16(%rdi)
+
    pop %rbp
    ret
 
@@ -206,7 +216,7 @@ alocaMem:
    movq %r12,-8(%r13)
 
    fim_calcula_bloco:
-   call imprime_mapa
+   #call imprime_mapa
 
    pop %rbp
    ret
@@ -233,12 +243,17 @@ main:
    movq bloco_2,%rdi
    call alocaMem
 
+   movq inicio, %rdi
+   call liberaAlocador
+
    call juntaBlocos
+
+   call imprime_mapa
 
    call finalizaAlocador
 
    call imprime_infs
-
+   
    movq $60, %rax
    syscall
    
