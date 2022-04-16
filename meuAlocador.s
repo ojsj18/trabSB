@@ -3,15 +3,12 @@
    inicio:       .quad 0
    ini_heap:     .quad 0
    header:       .quad 16
-   bloco:        .quad 64
-   bloco_teste_div:            .quad 32
-   bloco_teste_aumenta:        .quad 80
-   bloco_1:                    .quad 100
-   bloco_2:                    .quad 200
+   bloco:        .quad 0        #ajustar isso?
    str1:     .string "começou a baixaria\n"
    str2:     .string "valor da heap %p\n"
-   str3:     .string "status %d |tamanho %d | endereço %d\n"
+   str3:     .string "status %d |tamanho %d |\n"
    str4:     .string "inicio %d |tamanho %d | ini_heap %d \n"
+   str5:     .string "\n\n"
 .section .text
 .globl iniciaAlocador
 .globl finalizaAlocador
@@ -67,13 +64,21 @@ juntaBlocos:
     addq %r13, %r14
     addq header, %r14
 
+    cmpq %r14, tam_heap #arrumou problema do final da heap
+    jl fim_while_percorre_junta_blocos
+
     cmpq $0, -16(%r14)
     jne fim_if_livre_junta_blocos
     movq -8(%r14), %r15
     addq header, %r15
     addq %r15,-8(%r13)
-
+    #booleano que verifica se eu juntei com o proximo ou nao
+    #atualiza atual ao inves de ir pro proximo
+    movq $0,%r12   
     fim_if_livre_junta_blocos:
+    cmpq $0,%r12
+    movq $1,%r12
+    je while_percorre_junta_blocos
     addq -8(%r13),%r13    #calcula proximo bloco
     addq header,%r13
     jmp while_percorre_junta_blocos
@@ -104,6 +109,8 @@ liberaMem:
     
    movq $0, -16(%rdi)
 
+   call juntaBlocos
+   
    pop %rbp
    ret
 
@@ -140,6 +147,8 @@ imprimeMapa:
    jmp  while_imprime
 
    fim_while_imprime:
+   movq $str5,%rdi
+   call printf
    pop %rbp
    ret
 
@@ -219,8 +228,6 @@ alocaMem:
    movq %r12,-8(%r13)
 
    fim_calcula_bloco:
-   #call imprime_mapa
 
    pop %rbp
    ret
-   

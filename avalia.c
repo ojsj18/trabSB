@@ -4,13 +4,13 @@
 int main (long int argc, char** argv) {
   void *a,*b,*c,*d,*e;
 
-  iniciaAlocador(); 
+  iniciaAlocador(); //passou
   imprimeMapa();
   // 0) estado inicial
 
   a=(void *) alocaMem(100);
   imprimeMapa();
-  b=(void *) alocaMem(130);
+  b=(void *) alocaMem(130); //passou
   imprimeMapa();
   c=(void *) alocaMem(120);
   imprimeMapa();
@@ -19,7 +19,7 @@ int main (long int argc, char** argv) {
   // 1) Espero ver quatro segmentos ocupados
 
   liberaMem(b);
-  imprimeMapa(); 
+  imprimeMapa(); //passou
   liberaMem(d);
   imprimeMapa(); 
   // 2) Espero ver quatro segmentos alternando
@@ -27,7 +27,7 @@ int main (long int argc, char** argv) {
 
   b=(void *) alocaMem(30);
   imprimeMapa();
-  d=(void *) alocaMem(90);
+  d=(void *) alocaMem(90); //ta funcionando
   imprimeMapa();
   e=(void *) alocaMem(10);
   imprimeMapa();
