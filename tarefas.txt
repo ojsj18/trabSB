@@ -1,1 +1,2 @@
 implmentar next-fit
+deiar codigo bonito e legivel com comentarios
