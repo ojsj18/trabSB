@@ -1,2 +1,12 @@
 implmentar next-fit
+    -e se chegar no final?
+        -comparar se o proximo é o fim, se for volto pro primeiro livre
+            - chamo a mesma função mas com o ultimo livre sendo o incio da heap
+    - e se o lugar que eu tiver salvo for desalocado
+        se eu desalocar eu procuro o proximo livre
+            -fazer função proximo livre
+    - e se o lugar que eu tiver salvo tiver sido alocado
+        - se eu alocar eu busco o proximo livre e atualizo
+implementar emprime do jeito do livro:
+    ??
 deiar codigo bonito e legivel com comentarios
