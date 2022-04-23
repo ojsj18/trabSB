@@ -18,6 +18,9 @@
    str3:     .string "status %d |tamanho %d |\n"
    str4:     .string "inicio %d |tamanho %d | ini_heap %d \n"
    str5:     .string "\n\n"
+   strMapa1: .string "#"
+   strMapa2: .string "-"
+   strMapa3: .string "+"
 .section .text
 .globl main
 
@@ -140,6 +143,58 @@ imprimeMapa:
    while_imprime:
    cmpq tam_heap,%rbx    #if i<tam_heap
    jge fim_while_imprime
+
+   movq $0, %r12
+   while_header:
+   cmpq $16, %r12
+   jge fim_while_header
+
+   movq $strMapa1, %rdi
+   call printf #imprime hashtags na header
+   addq $1, %r12
+   jmp while_header
+
+   fim_while_header:
+   movq -16(%rbx), %r12
+   cmpq $0, %r12
+   jne fim_if_bloco_livre
+   movq $strMapa2, %r13
+   jmp fim_atribui_status
+
+   fim_if_bloco_livre:
+   movq $strMapa3, %r13
+
+   fim_atribui_status:
+   movq -8(%rbx), %r14
+   movq $0, %r12
+   while_imprime_bloco:
+   cmpq %r14, %r12
+   jge fim_imprime_bloco
+   movq %r13, %rdi
+   call printf
+
+   addq $1, %r12
+   jmp while_imprime_bloco
+
+   fim_imprime_bloco:
+   addq -8(%rbx),%rbx        #i=i+tam_bloco
+   addq header,%rbx
+   jmp  while_imprime
+
+   fim_while_imprime:
+   movq $str5,%rdi
+   call printf
+   pop %rbp
+   ret
+
+imprimeMapaAntigo:
+   pushq %rbp
+   movq %rsp,%rbp
+
+   movq inicio,%rbx      #i = inicio
+   while_imprime1:
+   cmpq tam_heap,%rbx    #if i<tam_heap
+   jge fim_while_imprime1
    movq $str3,%rdi
    movq -16(%rbx),%rsi
    movq -8(%rbx),%rdx
@@ -149,9 +204,9 @@ imprimeMapa:
 
    addq %r12,%rbx        #i=i+tam_bloco
    addq header,%rbx
-   jmp  while_imprime
+   jmp  while_imprime1
 
-   fim_while_imprime:
+   fim_while_imprime1:
    movq $str5,%rdi
    call printf
    pop %rbp
@@ -247,62 +302,71 @@ main:
    call iniciaAlocador
    call imprimeMapa
 
-   movq $100,%rdi
-   call alocaMem
-   movq %rax,a
-   movq $130,%rdi
-   call alocaMem
-   movq %rax,b
-   movq $120,%rdi
-   call alocaMem
-   movq %rax,c
-   movq $110,%rdi
-   call alocaMem
-   movq %rax,d
-   call imprimeMapa
- 
-   movq b,%rdi
-   call liberaMem
-   call imprimeMapa
-
-   movq d,%rdi
-   call liberaMem
-   call imprimeMapa
-
-   movq $30,%rdi
-   call alocaMem
-   movq %rax,b
-   call imprimeMapa
-   movq $90,%rdi
-   call alocaMem
-   movq %rax,d
-   call imprimeMapa
    movq $10,%rdi
    call alocaMem
-   movq %rax,e
-   call imprimeMapa
-
-
-   movq c,%rdi
-   call liberaMem
+   movq %rax,a
    call imprimeMapa
 
    movq a,%rdi
    call liberaMem
    call imprimeMapa
-
-   movq b,%rdi
-   call liberaMem
-   call imprimeMapa
-
-   movq d,%rdi
-   call liberaMem
-   call imprimeMapa
-
-   movq e,%rdi
-   call liberaMem
-   call imprimeMapa
-
+#
+   #movq $100,%rdi
+   #call alocaMem
+   #movq %rax,a
+   #movq $130,%rdi
+   #call alocaMem
+   #movq %rax,b
+   #movq $120,%rdi
+   #call alocaMem
+   #movq %rax,c
+   #movq $110,%rdi
+   #call alocaMem
+   #movq %rax,d
+   #call imprimeMapa
+ #
+   #movq b,%rdi
+   #call liberaMem
+   #call imprimeMapa
+#
+   #movq d,%rdi
+   #call liberaMem
+   #call imprimeMapa
+#
+   #movq $30,%rdi
+   #call alocaMem
+   #movq %rax,b
+   #call imprimeMapa
+   #movq $90,%rdi
+   #call alocaMem
+   #movq %rax,d
+   #call imprimeMapa
+   #movq $10,%rdi
+   #call alocaMem
+   #movq %rax,e
+   #call imprimeMapa
+#
+#
+   #movq c,%rdi
+   #call liberaMem
+   #call imprimeMapa
+#
+   #movq a,%rdi
+   #call liberaMem
+   #call imprimeMapa
+#
+   #movq b,%rdi
+   #call liberaMem
+   #call imprimeMapa
+#
+   #movq d,%rdi
+   #call liberaMem
+   #call imprimeMapa
+#
+   #movq e,%rdi
+   #call liberaMem
+   #call imprimeMapa
+#
    movq $60, %rax
    syscall
    
