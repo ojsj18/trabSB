@@ -63,13 +63,24 @@ juntaBlocos:
     addq %r13, %r14
     addq header, %r14
 
+    while_livre_junta_blocos:
+    cmpq %r14, tam_heap
+    jl fim_while_percorre_junta_blocos
+    
+    movq $0, %r15
     cmpq $0, -16(%r14)
     jne fim_if_livre_junta_blocos
-    movq -8(%r14), %r15
+
+    addq -8(%r14), %r15
     addq header, %r15
-    addq %r15,-8(%r13)
+
+    addq -8(%r14),%r14    #calcula proximo bloco
+    addq header,%r14
+    
+    jmp while_percorre_junta_blocos
 
     fim_if_livre_junta_blocos:
+    addq %r15,-8(%r13)
     addq -8(%r13),%r13    #calcula proximo bloco
     addq header,%r13
     jmp while_percorre_junta_blocos
@@ -99,6 +110,8 @@ liberaAlocador:
    movq %rsp,%rbp
     
    movq $0, -16(%rdi)
+
+   call juntaBlocos
 
    pop %rbp
    ret
@@ -245,13 +258,19 @@ main:
    movq inicio, %rdi
    call liberaAlocador
 
-   call juntaBlocos
+   #call juntaBlocos
 
+   call imprime_mapa
+
+   movq bloco_teste_div,%rdi
+   call alocaMem
+   
+   call imprime_infs
    call imprime_mapa
 
    call finalizaAlocador
 
-   call imprime_infs
+   
    
    movq $60, %rax
    syscall
