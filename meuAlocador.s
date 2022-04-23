@@ -87,6 +87,19 @@ juntaBlocos:
     pop %rbp
     ret
 
+#dado um endereço pega o proximo endereço livre
+busca_proximo_livre:
+   pushq %rbp
+   movq %rsp,%rbp
+
+   movq %rdi,%r12 #pega o endereço que eu quero pegar o proximo livre
+   #percorre perguntando se o proximo ta livre e se eu cheguei no final
+   #se chegar no final? chama bloco livre com o endreço com ini_heap no %rdi
+   #retorna endereço do bloco livre
+
+   pop %rbp
+   ret
+
 #passo o novo tamanho da pilha como sendo o valor inicial
 finalizaAlocador:
    pushq %rbp
@@ -107,6 +120,9 @@ liberaMem:
    pushq %rbp
    movq %rsp,%rbp
     
+    #pergunta se o endereço que eu vou liberar e o q esta em proximo
+    #se sim chama o proximo_bloco livre e coloca em proximo
+    #se nao so faz oq tem pra fazer
    movq $0, -16(%rdi)
 
    call juntaBlocos
