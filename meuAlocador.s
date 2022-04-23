@@ -105,6 +105,13 @@ busca_proximo:
 
    movq %rdi,%r13 # pega o endereço que eu quero pegar o proximo
    addq -8(%r13),%r13    # calcula proximo bloco
+   addq header,%r13
+
+   cmpq %r13, tam_heap
+   jne n_volta_inicio
+   movq inicio,%r13
+   movq $1,circular
+   n_volta_inicio:
    movq %r13, proximo
    
    movq %r13,%rax
