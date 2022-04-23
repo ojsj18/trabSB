@@ -1,0 +1,46 @@
+politica_de_escolha_ff:
+   pushq %rbp
+   movq %rsp,%rbp
+
+   movq %rdi,%rax # pega tamanho que quer alocar
+   movq inicio,%r13       # i =inicio
+   while_percorre:
+   cmpq %r13,tam_heap # if i<tam_heap
+   jl fim_while_percorre
+   cmpq $0,-16(%r13)  # ve se ta livre
+   jne fim_if_livre
+   cmpq -8(%r13),%rax   # se tamanho no bloco e disponivel
+   jg fim_if_livre
+   movq %r13,%rax
+   pop %rbp
+   ret
+
+   fim_if_livre:
+   addq -8(%r13),%r13    # calcula proximo bloco
+   addq header,%r13
+   jmp while_percorre
+
+   # aqui eu abro mais espaço na heap
+   fim_while_percorre:
+   movq %rax,%r14 # salvo o tamanho do bloco
+
+   movq tam_heap,%r13
+   addq %rax,%r13 # somo no final da heap o tamanho que eu quero
+   addq header,%r13
+   movq %r13,%rdi
+   movq $12,%rax
+   syscall
+
+   # coloca o header e devolve o novo bloco
+   movq tam_heap,%rbx
+   addq header,%rbx
+
+   movq %r14,-16(%rbx)  # TAMANHO como estou no fim da heap e para frente
+   movq $0,-8(%rbx)   # STATUS
+
+   movq -16(%rbx),%rdx # ta funcionando
+   movq %r13,tam_heap # atualizando o tamanho
+
+   movq %rbx,%rax
+   pop %rbp
+   ret
