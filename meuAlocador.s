@@ -11,6 +11,9 @@
    str3:     .string "status %d |tamanho %d |\n"
    str4:     .string "inicio %d |tamanho %d | ini_heap %d \n"
    str5:     .string "\n\n"
+   strMapa1: .string "#"
+   strMapa2: .string "-"
+   strMapa3: .string "+"
 .section .text
 .globl iniciaAlocador
 .globl finalizaAlocador
@@ -38,6 +41,8 @@ iniciaAlocador:
    movq %rax, proximo
    addq bloco,%rax       # rax:= ini_heap+header+novo_bloco
    movq %rax, tam_heap  
+
+   movq $1,circular
 
    movq %rax,%rdi
    movq $12, %rax               #chama a brk
@@ -74,10 +79,13 @@ juntaBlocos:
 
     cmpq $0, -16(%r14)  # r14 representa o proximo bloco
     jne fim_if_livre_junta_blocos
+
     cmpq proximo,%r14 # se for o proximo eu devo levar o proximo adiante
     jne juntar
+    
     movq %r14,%rdi
     call busca_proximo
+
     juntar: 
     movq -8(%r14), %r15
     addq header, %r15
@@ -103,18 +111,18 @@ busca_proximo:
    pushq %rbp
    movq %rsp,%rbp
 
-   movq %rdi,%r13 # pega o endereço que eu quero pegar o proximo
-   addq -8(%r13),%r13    # calcula proximo bloco
-   addq header,%r13
+   movq %rdi,%r15 # pega o endereço que eu quero pegar o proximo
+   addq -8(%r15),%r15    # calcula proximo bloco
+   addq header,%r15
 
-   cmpq %r13, tam_heap
+   cmpq %r15, tam_heap
    jne n_volta_inicio
-   movq inicio,%r13
+   movq inicio,%r15
    movq $1,circular
    n_volta_inicio:
-   movq %r13, proximo
+   movq %r15, proximo
    
-   movq %r13,%rax
+   movq %r15,%rax
    pop %rbp
    ret
 
@@ -159,6 +167,7 @@ imprime_infs:
    movq inicio,%rsi
    movq tam_heap,%rdx
    movq ini_heap,%rcx
+   movq proximo, %r8
    call printf
 
    pop %rbp
@@ -172,6 +181,58 @@ imprimeMapa:
    while_imprime:
    cmpq tam_heap,%rbx    # if i<tam_heap
    jge fim_while_imprime
+
+   movq $0, %r12
+   while_header:
+   cmpq $16, %r12
+   jge fim_while_header
+
+   movq $strMapa1, %rdi
+   call printf #imprime hashtags na header
+   addq $1, %r12
+   jmp while_header
+
+   fim_while_header:
+   movq -16(%rbx), %r12
+   cmpq $0, %r12
+   jne fim_if_bloco_livre
+   movq $strMapa2, %r13
+   jmp fim_atribui_status
+
+   fim_if_bloco_livre:
+   movq $strMapa3, %r13
+
+   fim_atribui_status:
+   movq -8(%rbx), %r14
+   movq $0, %r12
+   while_imprime_bloco:
+   cmpq %r14, %r12
+   jge fim_imprime_bloco
+   movq %r13, %rdi
+   call printf
+
+   addq $1, %r12
+   jmp while_imprime_bloco
+
+   fim_imprime_bloco:
+   addq -8(%rbx),%rbx        #i=i+tam_bloco
+   addq header,%rbx
+   jmp  while_imprime
+
+   fim_while_imprime:
+   movq $str5,%rdi
+   call printf
+   pop %rbp
+   ret
+
+imprimeMapaAntigo:
+   pushq %rbp
+   movq %rsp,%rbp
+
+   movq inicio,%rbx      #i = inicio
+   while_imprime1:
+   cmpq tam_heap,%rbx    #if i<tam_heap
+   jge fim_while_imprime1
    movq $str3,%rdi
    movq -16(%rbx),%rsi
    movq -8(%rbx),%rdx
@@ -181,9 +242,9 @@ imprimeMapa:
 
    addq %r12,%rbx        # i=i+tam_bloco
    addq header,%rbx
-   jmp  while_imprime
+   jmp  while_imprime1
 
-   fim_while_imprime:
+   fim_while_imprime1:
    movq $str5,%rdi
    call printf
    pop %rbp
@@ -203,6 +264,7 @@ politica_de_escolha_nf:
    cmpq -8(%r13),%rax   # se tamanho no bloco e disponivel
    jg fim_if_livre
    movq %r13, proximo  # foi o ultimo percorrido
+   movq $0,circular  # se esta no meio nao se sabe se teve alteração nos anteriores  
    movq %r13,%rax
    pop %rbp
    ret
@@ -214,26 +276,36 @@ politica_de_escolha_nf:
 
    # aqui eu abro mais espaço na heap
    fim_while_percorre:
-   cmpq $0,circular
-   jne aumenta_heap
-   movq inicio,%r15
-   movq %r15,proximo
-   movq $1,circular
-   movq proximo,%r13
+   cmpq $1,circular  # se circulou == 1 entao aumenta a heap
+   je ja_circulou
+   
+   movq $1,circular  # como vai voltar pro inicio entao vai ter circulado
+   movq inicio,%r13
    jmp while_percorre
 
-   aumenta_heap:
-   movq %rax,%r14 # salvo o tamanho do bloco
+   ja_circulou:
+   movq $0,circular
+   movq %rax,%rdi # manda tamanho do bloco pra aumentar heap
+   call aumenta_heap
+
+   pop %rbp
+   ret
+
+
+aumenta_heap:
+   pushq %rbp
+   movq %rsp,%rbp
+
+   movq %rdi,%r14 # salvo o tamanho do bloco
 
    movq tam_heap,%r13
-   addq %rax,%r13 # somo no final da heap o tamanho que eu quero
+   addq %rdi,%r13 # somo no final da heap o tamanho que eu quero
    addq header,%r13
    movq %r13,%rdi
-   movq $12,%rax
+   movq $12,%rdi
    syscall
 
    # coloca o header e devolve o novo bloco
-   movq $0,circular
    movq tam_heap,%rbx
    addq header,%rbx
 
@@ -243,7 +315,9 @@ politica_de_escolha_nf:
    movq -16(%rbx),%rdx # ta funcionando
    movq %r13,tam_heap # atualizando o tamanho
 
+   movq %rbx, proximo
    movq %rbx,%rax
+
    pop %rbp
    ret
 
