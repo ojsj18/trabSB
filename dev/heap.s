@@ -81,10 +81,13 @@ juntaBlocos:
 
     cmpq $0, -16(%r14)  # r14 representa o proximo bloco
     jne fim_if_livre_junta_blocos
+
     cmpq proximo,%r14 # se for o proximo eu devo levar o proximo adiante
     jne juntar
+    
     movq %r14,%rdi
     call busca_proximo
+
     juntar: 
     movq -8(%r14), %r15
     addq header, %r15
@@ -110,18 +113,18 @@ busca_proximo:
    pushq %rbp
    movq %rsp,%rbp
 
-   movq %rdi,%r13 # pega o endereço que eu quero pegar o proximo
-   addq -8(%r13),%r13    # calcula proximo bloco
-   addq header,%r13
+   movq %rdi,%r15 # pega o endereço que eu quero pegar o proximo
+   addq -8(%r15),%r15    # calcula proximo bloco
+   addq header,%r15
 
-   cmpq %r13, tam_heap
+   cmpq %r15, tam_heap
    jne n_volta_inicio
-   movq inicio,%r13
+   movq inicio,%r15
    movq $1,circular
    n_volta_inicio:
-   movq %r13, proximo
+   movq %r15, proximo
    
-   movq %r13,%rax
+   movq %r15,%rax
    pop %rbp
    ret
 
