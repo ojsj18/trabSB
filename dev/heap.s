@@ -231,7 +231,7 @@ politica_de_escolha_nf:
    jmp while_percorre
 
    ja_circulou:
-   movq $1,circular
+   movq $0,circular
    movq %rax,%rdi # manda tamanho do bloco pra aumentar heap
    call aumenta_heap
 
