@@ -375,9 +375,9 @@ politica_de_escolha_bf:
    jg fim_if_livre_bf
    #compara se o bloco selecionado como menor eh menor que o %r13
    movq -8(%r13), %r15
-   cmpq -8(%r12),%r15
+   cmpq %r15,-8(%r12)
    jg fim_if_livre_bf
-   movq %r13, %r12
+   movq %r12, %r13
    jmp fim_if_livre_bf
    movq %r12, %rax
    pop %rbp
@@ -389,13 +389,7 @@ politica_de_escolha_bf:
    jmp while_percorre_bf
 
    fim_while_percorre_bf:
-   cmpq %r12, %r13
-   jne encontrou_bloco_menor
    movq %r13, %rax
-   jmp finaliza_percorre_bf
-   encontrou_bloco_menor:
-   movq %r12, %rax
-   finaliza_percorre_bf:
    pop %rbp
    ret
 
