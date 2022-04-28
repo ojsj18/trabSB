@@ -296,6 +296,128 @@ politica_de_escolha_nf:
    pop %rbp
    ret
 
+politica_de_escolha_ff:
+   pushq %rbp
+   movq %rsp,%rbp
+
+   movq %rdi,%rax # pega tamanho que quer alocar
+   movq inicio,%r13       # i =inicio
+   while_percorre_ff:
+   cmpq %r13,tam_heap # if i<tam_heap
+   jl fim_while_percorre_ff
+   cmpq $0,-16(%r13)  # ve se ta livre
+   jne fim_if_livre_ff
+   cmpq -8(%r13),%rax   # se tamanho no bloco e disponivel
+   jg fim_if_livre_ff
+   movq %r13,%rax
+   pop %rbp
+   ret
+
+   fim_if_livre_ff:
+   addq -8(%r13),%r13    # calcula proximo bloco
+   addq header,%r13
+   jmp while_percorre_ff
+
+   # aqui eu abro mais espaço na heap
+   fim_while_percorre_ff:
+   movq %rax,%r14 # salvo o tamanho do bloco
+
+   movq tam_heap,%r13
+   addq %rax,%r13 # somo no final da heap o tamanho que eu quero
+   addq header,%r13
+   movq %r13,%rdi
+   movq $12,%rax
+   syscall
+
+   # coloca o header e devolve o novo bloco
+   movq tam_heap,%rbx
+   addq header,%rbx
+
+   movq %r14,-16(%rbx)  # TAMANHO como estou no fim da heap e para frente
+   movq $0,-8(%rbx)   # STATUS
+
+   movq -16(%rbx),%rdx # ta funcionando
+   movq %r13,tam_heap # atualizando o tamanho
+
+   movq %rbx,%rax
+   pop %rbp
+   ret
+
+politica_de_escolha_bf:
+   pushq %rbp
+   movq %rsp,%rbp
+
+   #call politica_de_escolha_ff
+   movq %rdi, %rax
+   movq %rax, %r15
+   addq header, %r15
+   movq inicio, %r13
+   while_percorre_first:
+   cmpq %r13, tam_heap
+   jl fim_while_percorre_first_not_found
+   cmpq $0, -16(%r13)
+   jne fim_if_livre_first
+   cmpq -8(%r13), %r15
+   jg fim_if_livre_first
+   jmp fim_while_percorre_first
+
+   fim_if_livre_first:
+   addq -8(%r13), %r13
+   addq header, %r13
+   jmp while_percorre_first
+
+   fim_while_percorre_first:
+   movq %r13, %r12
+   addq -8(%r12), %r12
+   addq header,%r12
+   while_percorre_bf:
+   cmpq %r12, tam_heap
+   jl fim_while_percorre_bf
+   cmpq $0, -16(%r12)
+   jne fim_if_livre_bf
+   cmpq -8(%r12), %r15
+   jg fim_if_livre_bf
+   # compara se o bloco selecionado como menor eh menor que o %r13
+   movq -8(%r13), %r15
+   cmpq %r15,-8(%r12)
+   jg fim_if_livre_bf
+   movq %r12, %r13
+   jmp fim_if_livre_bf
+
+   fim_if_livre_bf:
+   addq -8(%r12), %r12
+   addq header, %r12
+   jmp while_percorre_bf
+
+   fim_while_percorre_bf:
+   movq %r13, %rax
+   pop %rbp
+   ret
+
+   fim_while_percorre_first_not_found:
+   movq %rax,%r14 # salvo o tamanho do bloco
+
+   movq tam_heap,%r13
+   addq %rax,%r13 # somo no final da heap o tamanho que eu quero
+   addq header,%r13
+   movq %r13,%rdi
+   movq $12,%rax
+   syscall
+
+   # coloca o header e devolve o novo bloco
+   movq tam_heap,%rbx
+   addq header,%rbx
+
+   movq %r14,-16(%rbx)  # TAMANHO como estou no fim da heap e para frente
+   movq $0,-8(%rbx)   # STATUS
+
+   movq -16(%rbx),%rdx # ta funcionando
+   movq %r13,tam_heap # atualizando o tamanho
+
+   movq %rbx,%rax
+   pop %rbp
+   ret
+
 
 aumenta_heap:
    pushq %rbp
@@ -330,21 +452,22 @@ alocaMem:
    pushq %rbp
    movq %rsp,%rbp
 
-   movq %rdi,%r15
+   movq %rdi,%r14
 
-   call politica_de_escolha_nf
+   #call politica_de_escolha_nf
+   call politica_de_escolha_bf
 
    movq $1,-16(%rax) # muda o status para ocupado
    movq -8(%rax),%r12 # salva o tamanho do bloco para calcular oq sobra
 
-   movq %r15,-8(%rax) # substitui o tamanho antigo do bloco para o novo tamanho
+   movq %r14,-8(%rax) # substitui o tamanho antigo do bloco para o novo tamanho
 
    # calcular divisao dos blocos
-   subq %r15,%r12     # calcula a diferença
+   subq %r14,%r12     # calcula a diferença
    cmpq $0,%r12       # se for igual a zero nao precisa dividir o bloco
    je fim_calcula_bloco
    movq %rax,%r13  # r13 = endereço na heap
-   addq %r15,%r13  # r13 + tamanho do bloco ocupado
+   addq %r14,%r13  # r13 + tamanho do bloco ocupado
 
    # aqui eu chego no final do bloco livre entao e pra frente que eu coloco
    addq header,%r13
@@ -368,51 +491,43 @@ main:
    
    call iniciaAlocador
    call imprime_infs
-   call imprimeMapa
-
-   movq $10,%rdi
+   call imprimeMapaAntigo
+#
+   movq $100,%rdi
    call alocaMem
    movq %rax,a
-   call imprimeMapa
-
-   movq a,%rdi
-   call liberaMem
-   call imprimeMapa
-#
-   #movq $100,%rdi
-   #call alocaMem
-   #movq %rax,a
-   #movq $130,%rdi
-   #call alocaMem
-   #movq %rax,b
-   #movq $120,%rdi
-   #call alocaMem
-   #movq %rax,c
-   #movq $110,%rdi
-   #call alocaMem
-   #movq %rax,d
-   #call imprimeMapa
+   movq $130,%rdi
+   call alocaMem
+   movq %rax,b
+   movq $120,%rdi
+   call alocaMem
+   movq %rax,c
+   movq $110,%rdi
+   call alocaMem
+   movq %rax,d
+   call imprimeMapaAntigo
  #
-   #movq b,%rdi
-   #call liberaMem
-   #call imprimeMapa
+   movq b,%rdi
+   call liberaMem
+   call imprimeMapaAntigo
 #
-   #movq d,%rdi
-   #call liberaMem
-   #call imprimeMapa
+   movq d,%rdi
+   call liberaMem
+   call imprimeMapaAntigo
 #
-   #movq $30,%rdi
-   #call alocaMem
-   #movq %rax,b
-   #call imprimeMapa
-   #movq $90,%rdi
-   #call alocaMem
-   #movq %rax,d
-   #call imprimeMapa
-   #movq $10,%rdi
-   #call alocaMem
-   #movq %rax,e
-   #call imprimeMapa
+
+   movq $30,%rdi
+   call alocaMem
+   movq %rax,b
+   call imprimeMapaAntigo
+   movq $90,%rdi
+   call alocaMem
+   movq %rax,d
+   call imprimeMapaAntigo
+   movq $10,%rdi
+   call alocaMem
+   movq %rax,e
+   call imprimeMapaAntigo
 #
 #
    #movq c,%rdi
