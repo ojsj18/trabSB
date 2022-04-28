@@ -349,13 +349,15 @@ politica_de_escolha_bf:
 
    #call politica_de_escolha_ff
    movq %rdi, %rax
+   movq %rax, %r15
+   addq header, %r15
    movq inicio, %r13
    while_percorre_first:
    cmpq %r13, tam_heap
    jl fim_while_percorre_first_not_found
    cmpq $0, -16(%r13)
    jne fim_if_livre_first
-   cmpq -8(%r13), %rax
+   cmpq -8(%r13), %r15
    jg fim_if_livre_first
    jmp fim_while_percorre_first
 
@@ -366,22 +368,21 @@ politica_de_escolha_bf:
 
    fim_while_percorre_first:
    movq %r13, %r12
+   addq -8(%r12), %r12
+   addq header,%r12
    while_percorre_bf:
    cmpq %r12, tam_heap
    jl fim_while_percorre_bf
    cmpq $0, -16(%r12)
    jne fim_if_livre_bf
-   cmpq -8(%r12), %rax
+   cmpq -8(%r12), %r15
    jg fim_if_livre_bf
-   #compara se o bloco selecionado como menor eh menor que o %r13
+   # compara se o bloco selecionado como menor eh menor que o %r13
    movq -8(%r13), %r15
    cmpq %r15,-8(%r12)
    jg fim_if_livre_bf
    movq %r12, %r13
    jmp fim_if_livre_bf
-   movq %r12, %rax
-   pop %rbp
-   ret
 
    fim_if_livre_bf:
    addq -8(%r12), %r12
@@ -451,7 +452,7 @@ alocaMem:
    pushq %rbp
    movq %rsp,%rbp
 
-   movq %rdi,%r15
+   movq %rdi,%r14
 
    #call politica_de_escolha_nf
    call politica_de_escolha_bf
@@ -459,14 +460,14 @@ alocaMem:
    movq $1,-16(%rax) # muda o status para ocupado
    movq -8(%rax),%r12 # salva o tamanho do bloco para calcular oq sobra
 
-   movq %r15,-8(%rax) # substitui o tamanho antigo do bloco para o novo tamanho
+   movq %r14,-8(%rax) # substitui o tamanho antigo do bloco para o novo tamanho
 
    # calcular divisao dos blocos
-   subq %r15,%r12     # calcula a diferença
+   subq %r14,%r12     # calcula a diferença
    cmpq $0,%r12       # se for igual a zero nao precisa dividir o bloco
    je fim_calcula_bloco
    movq %rax,%r13  # r13 = endereço na heap
-   addq %r15,%r13  # r13 + tamanho do bloco ocupado
+   addq %r14,%r13  # r13 + tamanho do bloco ocupado
 
    # aqui eu chego no final do bloco livre entao e pra frente que eu coloco
    addq header,%r13
@@ -514,6 +515,7 @@ main:
    call liberaMem
    call imprimeMapaAntigo
 #
+
    movq $30,%rdi
    call alocaMem
    movq %rax,b
