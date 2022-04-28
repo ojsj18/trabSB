@@ -368,14 +368,17 @@ politica_de_escolha_bf:
    movq %r13, %r12
    while_percorre_bf:
    cmpq %r12, tam_heap
-   jl fim_while_percorre_first_not_found
+   jl fim_while_percorre_bf
    cmpq $0, -16(%r12)
    jne fim_if_livre_bf
    cmpq -8(%r12), %rax
    jg fim_if_livre_bf
+   #compara se o bloco selecionado como menor eh menor que o %r13
    movq -8(%r13), %r15
    cmpq -8(%r12),%r15
    jg fim_if_livre_bf
+   movq %r13, %r12
+   jmp fim_if_livre_bf
    movq %r12, %rax
    pop %rbp
    ret
@@ -384,6 +387,17 @@ politica_de_escolha_bf:
    addq -8(%r12), %r12
    addq header, %r12
    jmp while_percorre_bf
+
+   fim_while_percorre_bf:
+   cmpq %r12, %r13
+   jne encontrou_bloco_menor
+   movq %r13, %rax
+   jmp finaliza_percorre_bf
+   encontrou_bloco_menor:
+   movq %r12, %rax
+   finaliza_percorre_bf:
+   pop %rbp
+   ret
 
    fim_while_percorre_first_not_found:
    movq %rax,%r14 # salvo o tamanho do bloco
