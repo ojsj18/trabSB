@@ -349,8 +349,7 @@ politica_de_escolha_bf:
 
    #call politica_de_escolha_ff
    movq %rdi, %rax
-   movq inicio, %r12
-   movq %r12, %r13
+   movq inicio, %r13
    while_percorre_first:
    cmpq %r13, tam_heap
    jl fim_while_percorre_first_not_found
@@ -358,20 +357,35 @@ politica_de_escolha_bf:
    jne fim_if_livre_first
    cmpq -8(%r13), %rax
    jg fim_if_livre_first
-   movq -8(%r13), %r15
-   cmpq -8(%r12),%r15
-   jg fim_if_livre_first
-   movq %r13, %r12
-   jmp fim_if_livre_first
+   jmp fim_while_percorre_first
 
    fim_if_livre_first:
    addq -8(%r13), %r13
    addq header, %r13
    jmp while_percorre_first
 
+   fim_while_percorre_first:
+   movq %r13, %r12
+   while_percorre_bf:
+   cmpq %r12, tam_heap
+   jl fim_while_percorre_first_not_found
+   cmpq $0, -16(%r12)
+   jne fim_if_livre_bf
+   cmpq -8(%r12), %rax
+   jg fim_if_livre_bf
+   movq -8(%r13), %r15
+   cmpq -8(%r12),%r15
+   jg fim_if_livre_bf
+   movq %r12, %rax
+   pop %rbp
+   ret
+
+   fim_if_livre_bf:
+   addq -8(%r12), %r12
+   addq header, %r12
+   jmp while_percorre_bf
+
    fim_while_percorre_first_not_found:
-   cmpq %rax, -8(%r12)
-   jg fim_politica_de_escolha_bf
    movq %rax,%r14 # salvo o tamanho do bloco
 
    movq tam_heap,%r13
@@ -392,11 +406,6 @@ politica_de_escolha_bf:
    movq %r13,tam_heap # atualizando o tamanho
 
    movq %rbx,%rax
-   pop %rbp
-   ret
-
-   fim_politica_de_escolha_bf:
-   movq %r12, %rax
    pop %rbp
    ret
 
